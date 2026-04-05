@@ -1,0 +1,84 @@
+{% extends "app.html" %}
+{% block title %}Receipt Scanner — Spendly{% endblock %}
+{% block topbar_title %}📸 Receipt Scanner{% endblock %}
+
+{% block content %}
+<div class="grid-2 fade-up">
+    <!-- Upload Zone -->
+    <div class="card">
+        <div class="card-header"><h3><span class="icon">📷</span> Scan Receipt or Bill</h3></div>
+        <div class="scanner-zone" id="scanZone">
+            <span class="scan-icon">📸</span>
+            <p style="font-weight:500;margin-bottom:.3rem">Drop your receipt image here</p>
+            <p class="text-muted" style="font-size:.8rem">or click to upload · Supports JPG, PNG, WebP</p>
+            <input type="file" id="scanFileInput" accept="image/*" capture="environment">
+        </div>
+        <img id="scanPreview" class="scan-preview" style="display:none" alt="Receipt preview">
+        <div id="scanLoading" class="scan-loading" style="display:none">
+            <div class="spinner"></div>
+            <span class="text-muted">Analyzing receipt with OCR...</span>
+        </div>
+        <div id="scanResult" class="scan-result" style="display:none"></div>
+    </div>
+
+    <!-- Expense Form (pre-filled from OCR) -->
+    <div class="card">
+        <div class="card-header"><h3><span class="icon">✏️</span> Transaction Details</h3></div>
+        <p class="text-muted mb-2" style="font-size:.82rem">Review the scanned data and adjust if needed before saving.</p>
+        <form action="{{ url_for('add_expense') }}" method="POST">
+            <div class="form-group">
+                <label>📂 Category</label>
+                <select name="category" class="form-control" required>
+                    {% for cat,icon in categories %}<option value="{{ cat }}">{{ icon }} {{ cat }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>💰 Amount</label>
+                    <input type="number" step="0.01" name="amount" id="scanAmount" class="form-control" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                    <label>📅 Date</label>
+                    <input type="date" name="date" id="scanDate" class="form-control" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>📝 Description</label>
+                <input type="text" name="description" id="scanDesc" class="form-control" placeholder="Auto-filled from scan">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">💾 Save Transaction</button>
+        </form>
+
+        <div class="mt-2">
+            <details>
+                <summary class="text-muted" style="cursor:pointer;font-size:.8rem">📄 View Raw OCR Text</summary>
+                <textarea id="scanRawText" class="form-control mt-1" rows="4" readonly style="font-size:.78rem;opacity:.7"></textarea>
+            </details>
+        </div>
+    </div>
+</div>
+
+<!-- How it works -->
+<div class="card mt-2 fade-up fade-up-d1">
+    <div class="card-header"><h3><span class="icon">💡</span> How It Works</h3></div>
+    <div class="grid-3" style="text-align:center;gap:2rem;padding:1rem 0">
+        <div>
+            <div style="font-size:2rem;margin-bottom:.5rem">📸</div>
+            <h4 style="font-size:.9rem;margin-bottom:.25rem">1. Upload Receipt</h4>
+            <p class="text-muted" style="font-size:.78rem">Take a photo or upload an existing image of your bill or receipt</p>
+        </div>
+        <div>
+            <div style="font-size:2rem;margin-bottom:.5rem">🤖</div>
+            <h4 style="font-size:.9rem;margin-bottom:.25rem">2. AI Scans It</h4>
+            <p class="text-muted" style="font-size:.78rem">Our OCR engine extracts amount, date, and merchant details automatically</p>
+        </div>
+        <div>
+            <div style="font-size:2rem;margin-bottom:.5rem">✅</div>
+            <h4 style="font-size:.9rem;margin-bottom:.25rem">3. Review & Save</h4>
+            <p class="text-muted" style="font-size:.78rem">Check the extracted data, pick a category, and save the transaction</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+{% endblock %}

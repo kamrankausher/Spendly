@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Spendly{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    {% block head %}{% endblock %}
+</head>
+<body>
+<div class="toast-stack" id="toastStack">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for cat,msg in messages %}
+    <div class="toast {{ cat }}">{{ msg }}</div>
+    {% endfor %}{% endif %}
+    {% endwith %}
+</div>
+{% block body %}{% endblock %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/static/sw.js').catch(()=>{})}</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

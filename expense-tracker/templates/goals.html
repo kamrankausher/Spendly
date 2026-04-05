@@ -1,0 +1,60 @@
+{% extends "app.html" %}
+{% block title %}Goals — Spendly{% endblock %}
+{% block topbar_title %}🎯 Savings Goals{% endblock %}
+
+{% block content %}
+<div class="card mb-2 fade-up">
+    <div class="card-header"><h3><span class="icon">➕</span> Create New Goal</h3></div>
+    <form action="{{ url_for('add_goal') }}" method="POST">
+        <div class="form-row">
+            <div class="form-group"><label>🎯 Goal Title</label>
+                <input type="text" name="title" class="form-control" placeholder="e.g. New Laptop, Vacation" required></div>
+            <div class="form-group"><label>💰 Target Amount</label>
+                <input type="number" step="0.01" name="target" class="form-control" placeholder="100000" required></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>💵 Already Saved</label>
+                <input type="number" step="0.01" name="saved" class="form-control" placeholder="0" value="0"></div>
+            <div class="form-group"><label>📅 Deadline</label>
+                <input type="date" name="deadline" class="form-control"></div>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Goal</button>
+    </form>
+</div>
+
+{% if goals %}
+<div class="grid-2 fade-up fade-up-d1">
+    {% for g in goals %}
+    {% set pct = (g.saved_amount / g.target_amount * 100) if g.target_amount > 0 else 0 %}
+    <div class="card goal-card">
+        <div class="goal-header">
+            <div class="goal-title">🎯 {{ g.title }}</div>
+            <a href="{{ url_for('delete_goal',gid=g.id) }}" data-delete="goal" class="btn btn-danger btn-icon btn-sm">🗑️</a>
+        </div>
+        <div class="goal-meta">
+            {% if g.deadline %}📅 Deadline: {{ g.deadline }}{% endif %}
+        </div>
+        <div class="goal-amounts">
+            <span class="text-success">Saved: {{ currency_map.get(current_user.currency,'₹') }}{{ "{:,.0f}".format(g.saved_amount) }}</span>
+            <span class="text-gold">Target: {{ currency_map.get(current_user.currency,'₹') }}{{ "{:,.0f}".format(g.target_amount) }}</span>
+        </div>
+        <div class="progress-track" style="height:8px">
+            <div class="progress-fill gold" style="width:{{ pct }}%"></div>
+        </div>
+        <div class="flex justify-between items-center mt-1">
+            <span style="font-size:.78rem;color:var(--text-muted)">{{ "%.1f"|format(pct) }}% reached</span>
+            <form action="{{ url_for('update_goal',gid=g.id) }}" method="POST" class="flex gap-1">
+                <input type="number" step="0.01" name="saved" class="form-control" value="{{ g.saved_amount }}" style="width:120px;padding:.3rem .5rem;font-size:.82rem">
+                <button type="submit" class="btn btn-outline btn-sm">Update</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card fade-up fade-up-d1" style="text-align:center;padding:3rem">
+    <p style="font-size:1.5rem;margin-bottom:.5rem">🎯</p>
+    <p class="text-muted">No goals yet. Create your first savings goal above!</p>
+</div>
+{% endif %}
+{% endblock %}

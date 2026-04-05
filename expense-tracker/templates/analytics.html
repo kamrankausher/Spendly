@@ -1,0 +1,113 @@
+{% extends "app.html" %}
+{% block title %}Analytics — Spendly{% endblock %}
+{% block topbar_title %}📈 Financial Analytics{% endblock %}
+
+{% block content %}
+<!-- Overview Stats -->
+<div class="stat-grid fade-up">
+    <div class="card stat-card">
+        <div class="stat-icon">💳</div>
+        <div class="stat-value">{{ txn_count }}</div>
+        <div class="stat-label">Total Transactions</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-icon">📅</div>
+        <div class="stat-value danger">{{ currency_map.get(current_user.currency,'₹') }}{{ "{:,.0f}".format(avg_daily) }}</div>
+        <div class="stat-label">Daily Average</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-icon">🏷️</div>
+        <div class="stat-value text-accent">{{ top_cat.category }}</div>
+        <div class="stat-label">Top Category</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-value gold">{{ active_goals }}</div>
+        <div class="stat-label">Active Goals</div>
+    </div>
+</div>
+
+<div class="grid-2 fade-up fade-up-d1">
+    <!-- Financial Health Score -->
+    <div class="card health-score-card">
+        <div class="card-header" style="justify-content:center"><h3><span class="icon">🏅</span> Financial Health Score</h3></div>
+        <div class="health-ring">
+            <svg width="160" height="160">
+                <circle cx="80" cy="80" r="70" fill="none" stroke="var(--bg-secondary)" stroke-width="10"/>
+                <circle cx="80" cy="80" r="70" fill="none"
+                    stroke="{% if score >= 80 %}var(--success){% elif score >= 50 %}var(--warning){% else %}var(--danger){% endif %}"
+                    stroke-width="10" stroke-linecap="round"
+                    stroke-dasharray="{{ (score / 100 * 440)|round }}, 440"/>
+            </svg>
+            <div class="score-text">
+                <span class="score-num" style="color:{% if score >= 80 %}var(--success){% elif score >= 50 %}var(--warning){% else %}var(--danger){% endif %}">{{ score }}</span>
+                <span class="score-label">out of 100</span>
+            </div>
+        </div>
+        <p style="font-size:.88rem;color:var(--text-muted);margin-top:.5rem">
+            {% if score >= 80 %}🏆 Excellent! You're a disciplined saver.
+            {% elif score >= 60 %}👍 Good shape. Minor tweaks can improve your score.
+            {% elif score >= 40 %}⚠️ Watch out. Spending is a bit high this month.
+            {% else %}🚨 Budget overrun. Consider cutting non-essentials.
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- AI Insights -->
+    <div class="card">
+        <div class="card-header"><h3><span class="icon">🧠</span> Smart Insights</h3></div>
+        {% for ins in insights %}
+        <div class="insight-card">
+            <div class="insight-icon">{{ ins.icon }}</div>
+            <div class="insight-text">{{ ins.text | safe }}</div>
+        </div>
+        {% endfor %}
+        <div class="insight-card">
+            <div class="insight-icon">💰</div>
+            <div class="insight-text">Total saved across <strong>{{ active_goals }} goals</strong>: {{ currency_map.get(current_user.currency,'₹') }}{{ "{:,.0f}".format(total_saved) }}</div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-icon">📊</div>
+            <div class="insight-text">Lifetime spending: <strong>{{ currency_map.get(current_user.currency,'₹') }}{{ "{:,.0f}".format(total_all) }}</strong> across <strong>{{ txn_count }}</strong> transactions.</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="grid-2 mt-2 fade-up fade-up-d2">
+    <div class="card">
+        <div class="card-header"><h3><span class="icon">📊</span> Spending by Category</h3></div>
+        <div class="chart-box"><canvas id="catTrendChart"></canvas></div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3><span class="icon">📈</span> Monthly Spending Trend</h3></div>
+        <div class="chart-box"><canvas id="monthlyTrendChart"></canvas></div>
+    </div>
+</div>
+
+<!-- Top Spending Breakdown -->
+<div class="card mt-2 fade-up fade-up-d3">
+    <div class="card-header"><h3><span class="icon">🏷️</span> Category Breakdown</h3></div>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Category</th><th>Transactions</th><th>Total Spent</th><th>% of Total</th><th>Avg per Transaction</th></tr></thead>
+            <tbody>
+            {% for c in cats %}
+            <tr>
+                <td><span class="cat-badge">{{ c.category }}</span></td>
+                <td>{{ c.cnt }}</td>
+                <td style="font-weight:600">{{ currency_map.get(current_user.currency,'₹') }}{{ "{:,.0f}".format(c.total) }}</td>
+                <td>{{ "%.1f"|format(c.total / total_all * 100 if total_all > 0 else 0) }}%</td>
+                <td class="text-muted">{{ currency_map.get(current_user.currency,'₹') }}{{ "{:,.0f}".format(c.total / c.cnt if c.cnt > 0 else 0) }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-muted" style="text-align:center;padding:2rem">No data yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script id="analytics-cat-trend" type="application/json">{{ cats | tojson }}</script>
+<script id="analytics-monthly" type="application/json">{{ monthly | tojson }}</script>
+{% endblock %}

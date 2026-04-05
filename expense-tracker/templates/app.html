@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block head %}
+<meta name="user-lang" content="{{ current_user.language if current_user else 'English' }}">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#7c3aed">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+{% endblock %}
+
+{% block body %}
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <span class="logo">💎</span>
+            <h2>Spendly</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint=='dashboard' %}active{% endif %}">
+                <span class="nav-icon">📊</span> Dashboard</a>
+            <a href="{{ url_for('tracking') }}" class="{% if request.endpoint=='tracking' %}active{% endif %}">
+                <span class="nav-icon">🔍</span> Tracking</a>
+            <a href="{{ url_for('scanner') }}" class="{% if request.endpoint=='scanner' %}active{% endif %}">
+                <span class="nav-icon">📸</span> Scanner</a>
+            <a href="{{ url_for('analytics') }}" class="{% if request.endpoint=='analytics' %}active{% endif %}">
+                <span class="nav-icon">📈</span> Analytics</a>
+            <a href="{{ url_for('reports') }}" class="{% if request.endpoint=='reports' %}active{% endif %}">
+                <span class="nav-icon">📄</span> Reports</a>
+            <a href="{{ url_for('alerts') }}" class="{% if request.endpoint=='alerts' %}active{% endif %}">
+                <span class="nav-icon">🔔</span> Alerts</a>
+            <a href="{{ url_for('goals_page') }}" class="{% if request.endpoint=='goals_page' %}active{% endif %}">
+                <span class="nav-icon">🎯</span> Goals</a>
+            <a href="{{ url_for('profile') }}" class="{% if request.endpoint=='profile' %}active{% endif %}">
+                <span class="nav-icon">👤</span> Profile</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('logout') }}">🚪 Sign Out</a>
+        </div>
+    </aside>
+    <div class="main-area">
+        <header class="topbar">
+            <div class="flex items-center gap-1">
+                <button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+                <span class="topbar-title">{% block topbar_title %}Dashboard{% endblock %}</span>
+            </div>
+            <div class="topbar-actions">
+                <button class="btn btn-outline btn-sm" id="installPwa" style="display:none">📱 Install App</button>
+                <button class="theme-btn" id="themeBtn" title="Toggle theme">☀️</button>
+                <a href="{{ url_for('profile') }}">
+                    {% if current_user.avatar_url %}
+                    <img class="avatar-sm" src="{{ current_user.avatar_url }}" alt="avatar">
+                    {% else %}
+                    <img class="avatar-sm" src="https://api.dicebear.com/7.x/initials/svg?seed={{ current_user.name }}" alt="avatar">
+                    {% endif %}
+                </a>
+            </div>
+        </header>
+        <div class="content fade-up">
+            {% block content %}{% endblock %}
+        </div>
+        <div class="footer-bar">© 2026 Spendly · Financial Intelligence Platform</div>
+    </div>
+</div>
+{% endblock %}

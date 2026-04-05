@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Spendly — Smart Financial Intelligence{% endblock %}
+
+{% block body %}
+<div class="landing-wrapper">
+    <!-- LEFT: Marketing Content -->
+    <div class="landing-left">
+        <div class="landing-hero">
+            <div class="flex items-center gap-1 mb-2">
+                <span style="font-size:2rem">💎</span>
+                <h2 style="font-size:1.3rem;background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Spendly</h2>
+            </div>
+            <h1>Take Control of<br>Your <span>Financial Future</span></h1>
+            <p>The all-in-one platform to track expenses, manage budgets, monitor subscriptions, and build savings goals — with beautiful analytics and smart suggestions.</p>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-item">
+                <span class="fi-icon">📊</span>
+                <div><h4>Smart Dashboard</h4><p>Real-time budget tracking with interactive charts and spending breakdowns.</p></div>
+            </div>
+            <div class="feature-item">
+                <span class="fi-icon">🔔</span>
+                <div><h4>Subscription Alerts</h4><p>Never miss a billing date. Track all your recurring services in one place.</p></div>
+            </div>
+            <div class="feature-item">
+                <span class="fi-icon">🎯</span>
+                <div><h4>Savings Goals</h4><p>Set financial targets and watch your progress grow with visual trackers.</p></div>
+            </div>
+            <div class="feature-item">
+                <span class="fi-icon">💡</span>
+                <div><h4>AI Suggestions</h4><p>Personalized tips on where to cut spending and how to save smarter.</p></div>
+            </div>
+            <div class="feature-item">
+                <span class="fi-icon">📄</span>
+                <div><h4>Detailed Reports</h4><p>Download professional CSV reports with complete transaction history.</p></div>
+            </div>
+            <div class="feature-item">
+                <span class="fi-icon">🌍</span>
+                <div><h4>Multi-Currency</h4><p>Switch between ₹, $, €, £ seamlessly across all dashboards.</p></div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:.5rem;align-items:center">
+            <button class="theme-btn" id="themeBtn" title="Toggle theme">☀️</button>
+            <span class="text-muted" style="font-size:.8rem">Try switching the theme →</span>
+        </div>
+    </div>
+
+    <!-- RIGHT: Auth Forms -->
+    <div class="landing-right" id="authPanel">
+        <div class="auth-box">
+            <!-- Login form (default) -->
+            <div id="loginBox">
+                <h2 style="margin-bottom:.25rem">Welcome Back</h2>
+                <p class="text-muted" style="margin-bottom:1.5rem;font-size:.88rem">Sign in to your account</p>
+                <form action="{{ url_for('login') }}" method="POST">
+                    <div class="form-group">
+                        <label>📧 Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="you@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>🔒 Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                </form>
+                <p class="mt-2" style="font-size:.85rem;text-align:center">
+                    New here? <a href="#" onclick="toggleAuth()" style="font-weight:600">Create Account</a>
+                </p>
+            </div>
+
+            <!-- Register form (hidden) -->
+            <div id="registerBox" style="display:none">
+                <h2 style="margin-bottom:.25rem">Get Started</h2>
+                <p class="text-muted" style="margin-bottom:1.5rem;font-size:.88rem">Create your free account</p>
+                <form action="{{ url_for('register') }}" method="POST">
+                    <div class="form-group">
+                        <label>👤 Full Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="Alex Johnson" required>
+                    </div>
+                    <div class="form-group">
+                        <label>📧 Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="you@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>🔒 Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="Min 6 characters" required minlength="6">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>🌍 Country</label>
+                            <select name="country" class="form-control">
+                                <option value="India">India</option>
+                                <option value="USA">USA</option>
+                                <option value="UK">UK</option>
+                                <option value="Canada">Canada</option>
+                                <option value="Australia">Australia</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>⚧ Gender</label>
+                            <select name="gender" class="form-control">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+                </form>
+                <p class="mt-2" style="font-size:.85rem;text-align:center">
+                    Already have an account? <a href="#" onclick="toggleAuth()" style="font-weight:600">Sign In</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleAuth(){
+    const a=document.getElementById('loginBox'),b=document.getElementById('registerBox');
+    a.style.display = a.style.display==='none' ? 'block' : 'none';
+    b.style.display = b.style.display==='none' ? 'block' : 'none';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "app.html" %}
+{% block title %}Reports — Spendly{% endblock %}
+{% block topbar_title %}📄 Reports & Analysis{% endblock %}
+
+{% block content %}
+<!-- Overview Stats -->
+<div class="stat-grid fade-up">
+    <div class="card stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value gold">{{ currency_map.get(current_user.currency,'₹') }}{{ "{:,.0f}".format(budget) }}</div>
+        <div class="stat-label">Monthly Budget</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-value danger">{{ currency_map.get(current_user.currency,'₹') }}{{ "{:,.0f}".format(total_spent) }}</div>
+        <div class="stat-label">Total Spent</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-value">{{ categories|length }}</div>
+        <div class="stat-label">Categories</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-icon">🔔</div>
+        <div class="stat-value">{{ subscriptions|selectattr('is_active')|list|length }}</div>
+        <div class="stat-label">Active Subscriptions</div>
+    </div>
+</div>
+
+<!-- Print / Download Button -->
+<div class="fade-up mb-2 no-print" style="display:flex;gap:.75rem;flex-wrap:wrap">
+    <button onclick="printReport()" class="btn btn-gold">🖨️ Download PDF</button>
+    <a href="{{ url_for('export_csv') }}" class="btn btn-outline">📥 Export CSV</a>
+</div>
+
+<div class="grid-2 fade-up fade-up-d1">
+    <!-- Spending by Category Chart -->
+    <div class="card">
+        <div class="card-header"><h3><span class="icon">📊</span> Spending by Category</h3></div>
+        <div class="chart-box"><canvas id="reportBarChart"></canvas></div>
+    </div>
+
+    <!-- Budget vs Spending Pie -->
+    <div class="card">
+        <div class="card-header"><h3><span class="icon">🎯</span> Budget vs Spending</h3></div>
+        <div class="chart-box"><canvas id="reportPieChart"></canvas></div>
+    </div>
+</div>
+
+<!-- Monthly Trend -->
+{% if monthly_trends %}
+<div class="card mt-2 fade-up fade-up-d2">
+    <div class="card-header"><h3><span class="icon">📈</span> Monthly Spending Trend</h3></div>
+    <div class="chart-box"><canvas id="trendChart"></canvas></div>
+</div>
+{% endif %}
+
+<!-- Transaction History Table -->
+<div class="card mt-2 fade-up fade-up-d2">
+    <div class="card-header">
+        <h3><span class="icon">💳</span> Transaction Overview</h3>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>#</th><th>Category</th><th>Description</th><th>Amount</th><th>Date</th></tr></thead>
+            <tbody>
+            {% for e in expenses %}
+            <tr>
+                <td class="text-muted">{{ loop.index }}</td>
+                <td><span class="cat-badge">{{ e.category }}</span></td>
+                <td>{{ e.description or '—' }}</td>
+                <td style="font-weight:600;color:var(--danger)">-{{ currency_map.get(current_user.currency,'₹') }}{{ "{:,.0f}".format(e.amount) }}</td>
+                <td class="text-muted">{{ e.date }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-muted" style="text-align:center;padding:2rem">No data yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Subscriptions -->
+<div class="card mt-2 fade-up fade-up-d3">
+    <div class="card-header"><h3><span class="icon">🔔</span> Subscription Report</h3></div>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Platform</th><th>Monthly Cost</th><th>Status</th><th>Start</th><th>End</th></tr></thead>
+            <tbody>
+            {% for s in subscriptions %}
+            <tr>
+                <td style="font-weight:500">{{ s.platform }}</td>
+                <td>{{ currency_map.get(current_user.currency,'₹') }}{{ s.cost }}</td>
+                <td>{% if s.is_active %}<span class="badge badge-active">Active</span>{% else %}<span class="badge badge-inactive">Expired</span>{% endif %}</td>
+                <td class="text-muted">{{ s.start_date }}</td>
+                <td class="text-muted">{{ s.end_date or '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-muted" style="text-align:center;padding:1rem">No subscriptions.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script id="report-cat-data" type="application/json">{{ categories | tojson }}</script>
+<script id="report-budget-data" type="application/json">{"budget":{{ budget }},"spent":{{ total_spent }}}</script>
+<script id="report-trend-data" type="application/json">{{ monthly_trends | tojson }}</script>
+{% endblock %}

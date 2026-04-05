@@ -1,0 +1,90 @@
+{% extends "app.html" %}
+{% block title %}Alerts & Subscriptions — Spendly{% endblock %}
+{% block topbar_title %}🔔 Alerts & Subscriptions{% endblock %}
+
+{% block content %}
+<!-- Add Subscription -->
+<div class="card mb-2 fade-up">
+    <div class="card-header"><h3><span class="icon">➕</span> Add New Subscription</h3></div>
+    <form action="{{ url_for('add_subscription') }}" method="POST">
+        <div class="form-row">
+            <div class="form-group">
+                <label>📱 Platform Name</label>
+                <input type="text" name="platform" class="form-control" placeholder="e.g. Netflix, Spotify" required>
+            </div>
+            <div class="form-group">
+                <label>💰 Monthly Cost</label>
+                <input type="number" step="0.01" name="cost" class="form-control" placeholder="199" required>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>📅 Start Date</label>
+                <input type="date" name="start_date" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>📅 End Date</label>
+                <input type="date" name="end_date" class="form-control">
+            </div>
+        </div>
+        <div class="form-group" style="max-width:200px">
+            <label>⏱️ Duration (months)</label>
+            <input type="number" name="duration" class="form-control" value="1" min="1" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Subscription</button>
+    </form>
+</div>
+
+<!-- Active Subscriptions -->
+<div class="card mb-2 fade-up fade-up-d1">
+    <div class="card-header"><h3><span class="icon">✅</span> Active Subscriptions</h3></div>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Platform</th><th>Cost/mo</th><th>Start</th><th>End</th><th>Duration</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for s in subscriptions if s.is_active %}
+            <tr>
+                <td style="font-weight:500">📱 {{ s.platform }}</td>
+                <td style="font-weight:600">{{ currency_map.get(current_user.currency,'₹') }}{{ s.cost }}</td>
+                <td class="text-muted">{{ s.start_date }}</td>
+                <td class="text-muted">{{ s.end_date or '—' }}</td>
+                <td>{{ s.duration_months }} mo</td>
+                <td>
+                    <a href="{{ url_for('toggle_sub',sid=s.id) }}" class="btn btn-outline btn-sm">Deactivate</a>
+                    <a href="{{ url_for('delete_sub',sid=s.id) }}" data-delete="subscription" class="btn btn-danger btn-icon btn-sm">🗑️</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-muted" style="text-align:center;padding:1.5rem">No active subscriptions.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Inactive / Expired -->
+<div class="card fade-up fade-up-d2">
+    <div class="card-header"><h3><span class="icon">⛔</span> Inactive / Expired</h3></div>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Platform</th><th>Cost/mo</th><th>Start</th><th>End</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for s in subscriptions if not s.is_active %}
+            <tr>
+                <td style="font-weight:500;opacity:.7">{{ s.platform }}</td>
+                <td class="text-muted">{{ currency_map.get(current_user.currency,'₹') }}{{ s.cost }}</td>
+                <td class="text-muted">{{ s.start_date }}</td>
+                <td class="text-muted">{{ s.end_date or '—' }}</td>
+                <td>
+                    <a href="{{ url_for('toggle_sub',sid=s.id) }}" class="btn btn-success btn-sm">Reactivate</a>
+                    <a href="{{ url_for('delete_sub',sid=s.id) }}" data-delete="subscription" class="btn btn-danger btn-icon btn-sm">🗑️</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-muted" style="text-align:center;padding:1.5rem">No expired subscriptions.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
