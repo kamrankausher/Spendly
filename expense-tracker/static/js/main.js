@@ -18,6 +18,30 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('#themeBtn').forEach(b => b.textContent = isDark ? '☀️' : '🌙');
     }
 
+    // ═══════════ Mobile Sidebar Toggle ═══════════
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const mobileToggle = document.getElementById('mobileToggle');
+
+    function openSidebar() {
+        if (sidebar) sidebar.classList.add('open');
+        if (overlay) overlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSidebar() {
+        if (sidebar) sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+    if (mobileToggle) mobileToggle.addEventListener('click', () => {
+        sidebar && sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+    });
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+    // Close sidebar when a nav link is clicked (mobile)
+    document.querySelectorAll('.sidebar-nav a').forEach(link => {
+        link.addEventListener('click', closeSidebar);
+    });
+
     // ═══════════ Smooth Toasts ═══════════
     document.querySelectorAll('.toast').forEach(t => {
         setTimeout(() => { t.classList.add('fade-out'); setTimeout(() => t.remove(), 400); }, 3500);

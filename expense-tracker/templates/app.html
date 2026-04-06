@@ -2,14 +2,19 @@
 
 {% block head %}
 <meta name="user-lang" content="{{ current_user.language if current_user else 'English' }}">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <link rel="manifest" href="/static/manifest.json">
 <meta name="theme-color" content="#7c3aed">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>">
 {% endblock %}
 
 {% block body %}
 <div class="app-shell">
+    <!-- Sidebar overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <span class="logo">💎</span>
@@ -40,7 +45,7 @@
     <div class="main-area">
         <header class="topbar">
             <div class="flex items-center gap-1">
-                <button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+                <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">☰</button>
                 <span class="topbar-title">{% block topbar_title %}Dashboard{% endblock %}</span>
             </div>
             <div class="topbar-actions">
@@ -58,7 +63,28 @@
         <div class="content fade-up">
             {% block content %}{% endblock %}
         </div>
-        <div class="footer-bar">© 2026 Spendly · Financial Intelligence Platform</div>
+        <div class="footer-bar desktop-only">© 2026 Spendly · Financial Intelligence Platform</div>
     </div>
 </div>
+
+<!-- ═══ Mobile Bottom Tab Navigation ═══ -->
+<nav class="bottom-nav" id="bottomNav">
+    <div class="bottom-nav-inner">
+        <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint=='dashboard' %}active{% endif %}">
+            <span class="bnav-icon">📊</span>Home
+        </a>
+        <a href="{{ url_for('tracking') }}" class="{% if request.endpoint=='tracking' %}active{% endif %}">
+            <span class="bnav-icon">🔍</span>Track
+        </a>
+        <a href="{{ url_for('scanner') }}" class="{% if request.endpoint=='scanner' %}active{% endif %}">
+            <span class="bnav-icon">📸</span>Scan
+        </a>
+        <a href="{{ url_for('analytics') }}" class="{% if request.endpoint=='analytics' %}active{% endif %}">
+            <span class="bnav-icon">📈</span>Insights
+        </a>
+        <a href="{{ url_for('profile') }}" class="{% if request.endpoint in ['profile','goals_page','alerts','reports'] %}active{% endif %}">
+            <span class="bnav-icon">👤</span>More
+        </a>
+    </div>
+</nav>
 {% endblock %}
