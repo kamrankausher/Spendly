@@ -1,0 +1,29 @@
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+
+# OS junk
+.DS_Store
+__MACOSX/
+Thumbs.db
+
+# IDE
+.claude/plans/
+.vscode/
+.idea/
+
+# Database (auto-created on deploy)
+expense-tracker/database/spendly.db
+
+# User uploads (ephemeral on free tier)
+expense-tracker/static/uploads/*
+!expense-tracker/static/uploads/.gitkeep
