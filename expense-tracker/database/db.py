@@ -14,13 +14,9 @@ def get_db():
 def init_db():
     conn = get_db()
     c = conn.cursor()
-    c.execute('DROP TABLE IF EXISTS expenses')
-    c.execute('DROP TABLE IF EXISTS budgets')
-    c.execute('DROP TABLE IF EXISTS subscriptions')
-    c.execute('DROP TABLE IF EXISTS goals')
-    c.execute('DROP TABLE IF EXISTS users')
-
-    c.execute('''CREATE TABLE users (
+    
+    # Use IF NOT EXISTS to prevent dropping user data on restart
+    c.execute('''CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
@@ -35,7 +31,7 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
 
-    c.execute('''CREATE TABLE budgets (
+    c.execute('''CREATE TABLE IF NOT EXISTS budgets (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         amount REAL NOT NULL DEFAULT 0,
@@ -43,7 +39,7 @@ def init_db():
         FOREIGN KEY(user_id) REFERENCES users(id)
     )''')
 
-    c.execute('''CREATE TABLE expenses (
+    c.execute('''CREATE TABLE IF NOT EXISTS expenses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         amount REAL NOT NULL,
@@ -54,7 +50,7 @@ def init_db():
         FOREIGN KEY(user_id) REFERENCES users(id)
     )''')
 
-    c.execute('''CREATE TABLE subscriptions (
+    c.execute('''CREATE TABLE IF NOT EXISTS subscriptions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         platform TEXT NOT NULL,
@@ -66,7 +62,7 @@ def init_db():
         FOREIGN KEY(user_id) REFERENCES users(id)
     )''')
 
-    c.execute('''CREATE TABLE goals (
+    c.execute('''CREATE TABLE IF NOT EXISTS goals (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         title TEXT NOT NULL,
@@ -76,6 +72,12 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(user_id) REFERENCES users(id)
     )''')
+
+    # Add performance indexes
+    c.execute('CREATE INDEX IF NOT EXISTS idx_expenses_user_date ON expenses(user_id, date)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_subs_user ON subscriptions(user_id)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_goals_user ON goals(user_id)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_budgets_user ON budgets(user_id)')
 
     conn.commit()
     conn.close()

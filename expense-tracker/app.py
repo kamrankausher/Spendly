@@ -100,20 +100,36 @@ def logout():
 @login_required
 def dashboard():
     conn=get_db(); uid=session['user_id']; today=date.today()
+    
+    # Get budget
     budget_row=conn.execute("SELECT amount FROM budgets WHERE user_id=?",(uid,)).fetchone()
     budget=budget_row['amount'] if budget_row else 0
+    
+    # Define date range
     som=today.replace(day=1).isoformat()
     _,ld=calendar.monthrange(today.year,today.month)
     eom=today.replace(day=ld).isoformat()
-    expenses=[dict(r) for r in conn.execute("SELECT * FROM expenses WHERE user_id=? AND date>=? AND date<=? ORDER BY date DESC",(uid,som,eom)).fetchall()]
-    subs=[dict(r) for r in conn.execute("SELECT * FROM subscriptions WHERE user_id=? ORDER BY is_active DESC",(uid,)).fetchall()]
-    goals=[dict(r) for r in conn.execute("SELECT * FROM goals WHERE user_id=?",(uid,)).fetchall()]
+    
+    # Optimized fetch: Sum directly in SQL
+    summary=conn.execute("SELECT COALESCE(SUM(amount),0) as total FROM expenses WHERE user_id=? AND date>=? AND date<=?",(uid,som,eom)).fetchone()
+    total_spent=summary['total']
+    
+    # Recent expenses (limit to 5 for dashboard speed)
+    expenses=[dict(r) for r in conn.execute("SELECT * FROM expenses WHERE user_id=? AND date>=? AND date<=? ORDER BY date DESC LIMIT 5",(uid,som,eom)).fetchall()]
+    
+    # Subscriptions and Goals
+    subs=[dict(r) for r in conn.execute("SELECT * FROM subscriptions WHERE user_id=? ORDER BY is_active DESC LIMIT 3",(uid,)).fetchall()]
+    goals=[dict(r) for r in conn.execute("SELECT * FROM goals WHERE user_id=? LIMIT 3",(uid,)).fetchall()]
+    
+    # Category distribution for chart
+    cats_query=conn.execute("SELECT category, SUM(amount) as amount FROM expenses WHERE user_id=? AND date>=? AND date<=? GROUP BY category",(uid,som,eom)).fetchall()
+    cats={r['category']:r['amount'] for r in cats_query}
+    
     conn.close()
-    total_spent=sum(e['amount'] for e in expenses)
+    
     remaining=max(0,budget-total_spent)
     pct=min(100,(total_spent/budget)*100) if budget>0 else 0
-    cats={}
-    for e in expenses: cats[e['category']]=cats.get(e['category'],0)+e['amount']
+    
     return render_template("dashboard.html",budget=budget,total_spent=total_spent,remaining=remaining,
         percentage_used=pct,expenses=expenses,subscriptions=subs,goals=goals,cat_data=cats)
 
@@ -218,11 +234,16 @@ def tracking():
     elif filt=='60days': sd=(today-timedelta(days=60)).isoformat()
     elif filt=='year': sd=date(today.year,1,1).isoformat()
     else: sd="2000-01-01"
+    
+    # Combined fetching
     expenses=[dict(r) for r in conn.execute("SELECT * FROM expenses WHERE user_id=? AND date>=? ORDER BY date DESC",(uid,sd)).fetchall()]
     subs=[dict(r) for r in conn.execute("SELECT * FROM subscriptions WHERE user_id=?",(uid,)).fetchall()]
-    cats={}
-    for e in expenses: cats[e['category']]=cats.get(e['category'],0)+e['amount']
+    
+    # Aggregated category data for tips
+    cats_query=conn.execute("SELECT category, SUM(amount) as total FROM expenses WHERE user_id=? AND date>=? GROUP BY category",(uid,sd)).fetchall()
+    cats={r['category']:r['total'] for r in cats_query}
     total=sum(cats.values())
+    
     suggestions=[]
     for cat in ["Entertainment","Shopping","Food","Other"]:
         if cat in cats and total>0:
@@ -391,13 +412,8 @@ def api_summary():
 
 # ── Initialize DB on first run ───────────────────────────────────────
 from database.db import init_db as _idb, seed_db as _sdb
-import sqlite3
-try:
-    conn = get_db()
-    conn.execute("SELECT 1 FROM users LIMIT 1")
-    conn.close()
-except (sqlite3.OperationalError, Exception):
-    _idb(); _sdb()
+_idb() # Safe now (uses CREATE TABLE IF NOT EXISTS)
+_sdb() # Safe now (checks if users exist before seeding)
 
 if __name__=="__main__":
     app.run(debug=True, port=5001)
