@@ -1,7 +1,5 @@
-const CACHE_NAME = 'spendly-v6';
-const ASSETS = [
-    '/',
-    '/dashboard',
+const CACHE_NAME = 'spendly-v7';
+const STATIC_ASSETS = [
     '/static/css/style.css',
     '/static/js/main.js',
     '/static/manifest.json'
@@ -9,7 +7,7 @@ const ASSETS = [
 
 self.addEventListener('install', e => {
     e.waitUntil(
-        caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+        caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
     );
     self.skipWaiting();
 });
@@ -24,17 +22,26 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-    // Network-first for API and form submissions
-    if (e.request.method !== 'GET' || e.request.url.includes('/api/')) {
-        return;
-    }
+    const url = new URL(e.request.url);
+
+    // NEVER cache non-GET, API calls, or HTML navigation requests
+    if (e.request.method !== 'GET') return;
+    if (url.pathname.startsWith('/api/')) return;
+
+    // Only cache static assets (css, js, images, fonts, manifest)
+    const isStatic = url.pathname.startsWith('/static/');
+    if (!isStatic) return;
+
     e.respondWith(
-        fetch(e.request)
-            .then(r => {
-                const clone = r.clone();
-                caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
-                return r;
-            })
-            .catch(() => caches.match(e.request))
+        caches.match(e.request).then(cached => {
+            const fetched = fetch(e.request).then(response => {
+                if (response && response.ok) {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+                }
+                return response;
+            }).catch(() => cached);
+            return cached || fetched;
+        })
     );
 });

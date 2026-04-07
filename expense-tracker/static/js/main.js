@@ -85,13 +85,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     document.getElementById('confirmYes').addEventListener('click', () => {
+        // Capture values BEFORE closeConfirm nullifies them
+        const urlToDelete = pendingDeleteUrl;
+        const rowToDelete = pendingDeleteRow;
         closeConfirm();
-        if (pendingDeleteUrl) {
-            if (pendingDeleteRow) {
-                pendingDeleteRow.classList.add('deleting');
+        if (urlToDelete) {
+            if (rowToDelete) {
+                rowToDelete.classList.add('deleting');
             }
             // Navigate to the delete URL (server handles it and redirects)
-            setTimeout(() => { window.location.href = pendingDeleteUrl; }, 350);
+            setTimeout(() => { window.location.href = urlToDelete; }, 350);
         }
     });
 
